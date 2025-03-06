@@ -81,46 +81,30 @@ function getPossibleMoves(square, piece, board) {
   const type = piece[1];   // 'p', 'n', 'b', 'r', 'q', 'k'
 
   if (type === 'p') {
-    // Pawn: forward move plus initial two-square advance and diagonal captures.
+    // Pawn: only calculate attacked squares (coverage), not movement squares
     if (color === 'w') {
-      let forward = { file: file, rank: rank + 1 };
-      if (isInside(forward) && isEmpty(forward, board)) {
-        moves.push(coordToSquare(forward));
-        if (rank === 2) {
-          let forward2 = { file: file, rank: rank + 2 };
-          if (isInside(forward2) && isEmpty(forward2, board)) {
-            moves.push(coordToSquare(forward2));
-          }
+      // White pawn attacks
+      const attackSquares = [
+        { file: file - 1, rank: rank + 1 }, // left diagonal
+        { file: file + 1, rank: rank + 1 }  // right diagonal
+      ];
+      
+      attackSquares.forEach(coord => {
+        if (isInside(coord)) {
+          moves.push(coordToSquare(coord));
         }
-      }
-      // Diagonal captures
-      let diagLeft = { file: file - 1, rank: rank + 1 };
-      let diagRight = { file: file + 1, rank: rank + 1 };
-      if (isInside(diagLeft) && isEnemy(diagLeft, board, color)) {
-        moves.push(coordToSquare(diagLeft));
-      }
-      if (isInside(diagRight) && isEnemy(diagRight, board, color)) {
-        moves.push(coordToSquare(diagRight));
-      }
+      });
     } else {  // Black pawn
-      let forward = { file: file, rank: rank - 1 };
-      if (isInside(forward) && isEmpty(forward, board)) {
-        moves.push(coordToSquare(forward));
-        if (rank === 7) {
-          let forward2 = { file: file, rank: rank - 2 };
-          if (isInside(forward2) && isEmpty(forward2, board)) {
-            moves.push(coordToSquare(forward2));
-          }
+      const attackSquares = [
+        { file: file - 1, rank: rank - 1 }, // left diagonal
+        { file: file + 1, rank: rank - 1 }  // right diagonal
+      ];
+      
+      attackSquares.forEach(coord => {
+        if (isInside(coord)) {
+          moves.push(coordToSquare(coord));
         }
-      }
-      let diagLeft = { file: file - 1, rank: rank - 1 };
-      let diagRight = { file: file + 1, rank: rank - 1 };
-      if (isInside(diagLeft) && isEnemy(diagLeft, board, color)) {
-        moves.push(coordToSquare(diagLeft));
-      }
-      if (isInside(diagRight) && isEnemy(diagRight, board, color)) {
-        moves.push(coordToSquare(diagRight));
-      }
+      });
     }
   } else if (type === 'n') {
     // Knight moves: fixed L-shaped offsets.

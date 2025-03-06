@@ -1,0 +1,7 @@
+.controlled-white {
+    background-color: rgba(0, 255, 0, 0.3) !important; /* Light green */
+}
+
+.controlled-black {
+    background-color: rgba(255, 0, 0, 0.3) !important; /* Light red */
+}

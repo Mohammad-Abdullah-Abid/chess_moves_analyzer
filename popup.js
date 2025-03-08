@@ -1,28 +1,54 @@
-document.addEventListener("DOMContentLoaded", function () {
-    let toggleCheckbox = document.getElementById("toggleHighlight");
-
-    // Load the setting
-    chrome.storage.sync.get("highlightEnabled", function (data) {
-        toggleCheckbox.checked = data.highlightEnabled ?? true;
+document.addEventListener('DOMContentLoaded', () => {
+    const extensionToggle = document.getElementById('extension-toggle');
+    const hintsToggle = document.getElementById('hints-toggle');
+    const attacksToggle = document.getElementById('attacks-toggle');
+    const saveBtn = document.getElementById('save-btn');
+  
+    // Load current settings (default values: enabled)
+    chrome.storage.sync.get({
+      extensionEnabled: true,
+      highlightHints: true,
+      highlightAttacks: true
+    }, (items) => {
+      extensionToggle.checked = items.extensionEnabled;
+      hintsToggle.checked = items.highlightHints;
+      attacksToggle.checked = items.highlightAttacks;
     });
-
-    // Listen for toggle changes
-    toggleCheckbox.addEventListener("change", function () {
-        chrome.storage.sync.set({ highlightEnabled: toggleCheckbox.checked });
-        
-        // Send message to content script
-        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-            chrome.scripting.executeScript({
-                target: { tabId: tabs[0].id },
-                function: toggleHighlighting,
-                args: [toggleCheckbox.checked]
-            });
-        });
+  
+    // When the main extension toggle changes, update the feature toggles accordingly.
+    extensionToggle.addEventListener('change', () => {
+      if (extensionToggle.checked) {
+        // If extension is enabled, force both feature toggles to be enabled.
+        hintsToggle.checked = true;
+        attacksToggle.checked = true;
+      } else {
+        // If extension is disabled, force both feature toggles to be disabled.
+        hintsToggle.checked = false;
+        attacksToggle.checked = false;
+      }
     });
-});
-
-// Function injected into the webpage
-function toggleHighlighting(enabled) {
-    localStorage.setItem("chessCoverageEnabled", enabled);
-    window.location.reload(); // Reload the page to apply changes
-}
+  
+    // When a feature toggle is enabled, automatically enable the extension.
+    hintsToggle.addEventListener('change', () => {
+      if (hintsToggle.checked) {
+        extensionToggle.checked = true;
+      }
+    });
+  
+    attacksToggle.addEventListener('change', () => {
+      if (attacksToggle.checked) {
+        extensionToggle.checked = true;
+      }
+    });
+  
+    saveBtn.addEventListener('click', () => {
+      chrome.storage.sync.set({
+        extensionEnabled: extensionToggle.checked,
+        highlightHints: hintsToggle.checked,
+        highlightAttacks: attacksToggle.checked
+      }, () => {
+        alert('Settings saved.');
+      });
+    });
+  });
+  

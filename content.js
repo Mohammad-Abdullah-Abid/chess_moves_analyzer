@@ -212,24 +212,14 @@ function highlightHints(coverage, playerColor = 'w') {
     const squareClass = Array.from(hint.classList).find(cls => cls.startsWith('square-'));
     if (!squareClass) return;
     const square = squareClass.split('-')[1];
-    
+
     // For move hints, adjust background color
     if (hint.getAttribute('data-test-element') === "hint") {
       hint.classList.remove('safe-hint', 'danger-hint');
-      if (enemyCoverage.has(square)) {
-        hint.classList.add('danger-hint');
-      } else {
-        hint.classList.add('safe-hint');
-      }
-    } 
-    // For capture hints, adjust border style
-    else if (hint.getAttribute('data-test-element') === "capture-hint") {
+      hint.classList.add(enemyCoverage.has(square) ? 'danger-hint' : 'safe-hint');
+    } else if (hint.getAttribute('data-test-element') === "capture-hint") {
       hint.classList.remove('safe-capture-hint', 'danger-capture-hint');
-      if (enemyCoverage.has(square)) {
-        hint.classList.add('danger-capture-hint');
-      } else {
-        hint.classList.add('safe-capture-hint');
-      }
+      hint.classList.add(enemyCoverage.has(square) ? 'danger-capture-hint' : 'safe-capture-hint');
     }
   });
 }
@@ -245,12 +235,12 @@ function highlightAttackedPieces(coverage, playerColor = 'w') {
     if (!pieceType) return;
     const color = pieceType.charAt(0);
     if (color !== playerColor) return;
-    
+
     // Determine the square the piece is on from its class (e.g., "square-82")
     const squareClass = Array.from(piece.classList).find(cls => cls.startsWith('square-'));
     if (!squareClass) return;
     const square = squareClass.split('-')[1];
-    
+
     // Remove any existing under-attack indicator
     piece.classList.remove('under-attack');
     // If the enemy controls this square, mark the piece as under attack
@@ -260,14 +250,38 @@ function highlightAttackedPieces(coverage, playerColor = 'w') {
   });
 }
 
-// === Update Coverage on the Board ===
+// === Update Coverage on the Board Based on User Settings ===
 function updateCoverage() {
-  const board = getBoardState();
-  const coverage = calculateControlledSquares(board);
-  // Highlight move and capture hints based on enemy coverage
-  highlightHints(coverage, 'w');
-  // Highlight player's pieces that are under attack
-  highlightAttackedPieces(coverage, 'w');
+  chrome.storage.sync.get({
+    extensionEnabled: true,
+    highlightHints: true,
+    highlightAttacks: true
+  }, (settings) => {
+    // If the extension is disabled, remove any added classes.
+    if (!settings.extensionEnabled) {
+      document.querySelectorAll('[data-test-element="hint"], [data-test-element="capture-hint"]').forEach(el => {
+        el.classList.remove('safe-hint', 'danger-hint', 'safe-capture-hint', 'danger-capture-hint');
+      });
+      document.querySelectorAll('.piece').forEach(piece => piece.classList.remove('under-attack'));
+      return;
+    }
+
+    const board = getBoardState();
+    const coverage = calculateControlledSquares(board);
+
+    if (settings.highlightHints) {
+      highlightHints(coverage, 'w');
+    } else {
+      document.querySelectorAll('[data-test-element="hint"], [data-test-element="capture-hint"]').forEach(el => {
+        el.classList.remove('safe-hint', 'danger-hint', 'safe-capture-hint', 'danger-capture-hint');
+      });
+    }
+    if (settings.highlightAttacks) {
+      highlightAttackedPieces(coverage, 'w');
+    } else {
+      document.querySelectorAll('.piece').forEach(piece => piece.classList.remove('under-attack'));
+    }
+  });
 }
 
 // === Monitor the Page for Changes (to update on each move) ===

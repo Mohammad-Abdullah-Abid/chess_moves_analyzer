@@ -1,16 +1,22 @@
+:root {
+    --safe-hint-bg: rgba(0, 0, 0, .14);
+    --danger-hint-bg: rgba(255, 0, 0, 0.14);
+    --safe-capture-border: rgba(0, 0, 0, .14);
+    --danger-capture-border: rgba(255, 0, 0, 0.14);
+}
+
 /* For move hints (background color) */
 .safe-hint {
-    background-color: rgba(0, 0, 0, .14) !important; 
-  }
-  .danger-hint {
-    background-color: rgba(255, 0, 0, 0.14) !important; 
-  }
-  
-  /* For capture hints (border color) */
-  .safe-capture-hint {
-    border: 5px solid rgba(0, 0, 0, .14) !important; 
-  }
-  .danger-capture-hint {
-    border: 5px solid rgba(255, 0, 0, 0.14) !important;
-  }
-  
+    background-color: var(--safe-hint-bg) !important; 
+}
+.danger-hint {
+    background-color: var(--danger-hint-bg) !important; 
+}
+
+/* For capture hints (border color) */
+.safe-capture-hint {
+    border: 5px solid var(--safe-capture-border) !important; 
+}
+.danger-capture-hint {
+    border: 5px solid var(--danger-capture-border) !important;
+}

@@ -1,7 +1,16 @@
-.controlled-white {
-    background-color: rgba(0, 255, 0, 0.5) !important; /* Brighter green */
-}
-
-.controlled-black {
-    background-color: rgba(255, 0, 0, 0.5) !important; /* Brighter red */
-}
+/* For move hints (background color) */
+.safe-hint {
+    background-color: rgba(0, 0, 0, .14) !important; 
+  }
+  .danger-hint {
+    background-color: rgba(255, 0, 0, 0.14) !important; 
+  }
+  
+  /* For capture hints (border color) */
+  .safe-capture-hint {
+    border: 5px solid rgba(0, 0, 0, .14) !important; 
+  }
+  .danger-capture-hint {
+    border: 5px solid rgba(255, 0, 0, 0.14) !important;
+  }
+  

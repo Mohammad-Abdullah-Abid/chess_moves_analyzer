@@ -57,7 +57,7 @@ function getSlidingMoves(start, board, color, directions) {
 
 // === Get Board State from DOM ===
 function getBoardState() {
-  // This builds an object like { "82": "wp", "51": "wk", ... }
+  // Builds an object like { "82": "wp", "51": "wk", ... }
   let board = {};
   let pieces = document.querySelectorAll('.piece');
   pieces.forEach(piece => {
@@ -199,20 +199,38 @@ function calculateControlledSquares(board) {
   return coverage;
 }
 
-// === Highlighting Functionality ===
-function highlightControlledSquares(coverage) {
-  // Remove old highlights
-  document.querySelectorAll('.square').forEach(square => {
-    square.classList.remove('controlled-white', 'controlled-black');
-  });
-  // Add highlights based on calculated coverage
-  coverage.white.forEach(square => {
-    let squareElement = document.querySelector(`.square-${square}`);
-    if (squareElement) squareElement.classList.add('controlled-white');
-  });
-  coverage.black.forEach(square => {
-    let squareElement = document.querySelector(`.square-${square}`);
-    if (squareElement) squareElement.classList.add('controlled-black');
+// === Highlighting Hint Elements Based on Enemy Coverage ===
+// For move hints we adjust background color,
+// and for capture hints we adjust the border style.
+function highlightHints(coverage, playerColor = 'w') {
+  // Determine enemy coverage based on player color
+  const enemyCoverage = playerColor === 'w' ? coverage.black : coverage.white;
+  // Select both move hints and capture hints
+  const hintElements = document.querySelectorAll('[data-test-element="hint"], [data-test-element="capture-hint"]');
+  hintElements.forEach(hint => {
+    // Find the square identifier from the class (e.g., "square-44")
+    const squareClass = Array.from(hint.classList).find(cls => cls.startsWith('square-'));
+    if (!squareClass) return;
+    const square = squareClass.split('-')[1];
+    
+    // If it is a move hint element
+    if (hint.getAttribute('data-test-element') === "hint") {
+      hint.classList.remove('safe-hint', 'danger-hint');
+      if (enemyCoverage.has(square)) {
+        hint.classList.add('danger-hint');
+      } else {
+        hint.classList.add('safe-hint');
+      }
+    } 
+    // If it is a capture hint element, adjust the border instead of background
+    else if (hint.getAttribute('data-test-element') === "capture-hint") {
+      hint.classList.remove('safe-capture-hint', 'danger-capture-hint');
+      if (enemyCoverage.has(square)) {
+        hint.classList.add('danger-capture-hint');
+      } else {
+        hint.classList.add('safe-capture-hint');
+      }
+    }
   });
 }
 
@@ -220,7 +238,8 @@ function highlightControlledSquares(coverage) {
 function updateCoverage() {
   const board = getBoardState();
   const coverage = calculateControlledSquares(board);
-  highlightControlledSquares(coverage);
+  // Assuming the player is white; change to 'b' if needed.
+  highlightHints(coverage, 'w');
 }
 
 // === Monitor the Page for Changes (to update on each move) ===

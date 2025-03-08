@@ -202,8 +202,9 @@ function calculateControlledSquares(board) {
 // === Highlighting Hint Elements Based on Enemy Coverage ===
 // For move hints we adjust background color,
 // and for capture hints we adjust the border style.
-function highlightHints(coverage, playerColor = 'w') {
-  // Determine enemy coverage based on player color
+// For capture hints, we now simulate removal of the enemy piece if present
+// to account for unmasking enemy attacks.
+function highlightHints(board, coverage, playerColor = 'w') {
   const enemyCoverage = playerColor === 'w' ? coverage.black : coverage.white;
   // Select both move hints and capture hints
   const hintElements = document.querySelectorAll('[data-test-element="hint"], [data-test-element="capture-hint"]');
@@ -219,7 +220,21 @@ function highlightHints(coverage, playerColor = 'w') {
       hint.classList.add(enemyCoverage.has(square) ? 'danger-hint' : 'safe-hint');
     } else if (hint.getAttribute('data-test-element') === "capture-hint") {
       hint.classList.remove('safe-capture-hint', 'danger-capture-hint');
-      hint.classList.add(enemyCoverage.has(square) ? 'danger-capture-hint' : 'safe-capture-hint');
+      // Determine danger based on current coverage.
+      let isDanger = enemyCoverage.has(square);
+      // If not dangerous yet, and there is an enemy piece on the target square,
+      // simulate removal of that piece to check if new enemy attacks appear.
+      if (!isDanger && board[square] && board[square][0] !== playerColor) {
+        // Clone the board state.
+        let simulatedBoard = Object.assign({}, board);
+        delete simulatedBoard[square]; // Remove enemy piece.
+        let simulatedCoverage = calculateControlledSquares(simulatedBoard);
+        let simulatedEnemyCoverage = playerColor === 'w' ? simulatedCoverage.black : simulatedCoverage.white;
+        if (simulatedEnemyCoverage.has(square)) {
+          isDanger = true;
+        }
+      }
+      hint.classList.add(isDanger ? 'danger-capture-hint' : 'safe-capture-hint');
     }
   });
 }
@@ -270,7 +285,7 @@ function updateCoverage() {
     const coverage = calculateControlledSquares(board);
 
     if (settings.highlightHints) {
-      highlightHints(coverage, 'w');
+      highlightHints(board, coverage, 'w');
     } else {
       document.querySelectorAll('[data-test-element="hint"], [data-test-element="capture-hint"]').forEach(el => {
         el.classList.remove('safe-hint', 'danger-hint', 'safe-capture-hint', 'danger-capture-hint');

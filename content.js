@@ -181,6 +181,109 @@ function getPossibleMoves(square, piece, board) {
   return moves;
 }
 
+// --- New Helper: isPinned ---
+// Checks if a piece at pieceSquare (of side 'color') is pinned to its king.
+function isPinned(pieceSquare, board, color) {
+  // Find the king of that color.
+  let kingSquare;
+  for (const [sq, piece] of Object.entries(board)) {
+    if (piece === color + 'k') {
+      kingSquare = sq;
+      break;
+    }
+  }
+  if (!kingSquare) return false;
+
+  const kingCoord = squareToCoord(kingSquare);
+  const pieceCoord = squareToCoord(pieceSquare);
+  const df = pieceCoord.file - kingCoord.file;
+  const dr = pieceCoord.rank - kingCoord.rank;
+  
+  // Only consider if piece and king are collinear (vertical, horizontal, or diagonal).
+  const adf = Math.abs(df);
+  const adr = Math.abs(dr);
+  let normDf = 0, normDr = 0;
+  if (df === 0 && dr !== 0) {
+    normDr = dr / adr;
+  } else if (dr === 0 && df !== 0) {
+    normDf = df / adf;
+  } else if (adf === adr) {
+    normDf = df / adf;
+    normDr = dr / adr;
+  } else {
+    return false;
+  }
+  
+  // Move from the pieceSquare outward in the same direction and see if there's an opponent sliding piece.
+  let current = { ...pieceCoord };
+  current.file += normDf;
+  current.rank += normDr;
+  while (isInside(current)) {
+    const currentSquare = coordToSquare(current);
+    if (board[currentSquare]) {
+      const currPiece = board[currentSquare];
+      const opponentColor = color === 'w' ? 'b' : 'w';
+      if (currPiece[0] === opponentColor) {
+        // If the opponent piece is a sliding piece that moves along this ray...
+        if ((normDf === 0 || normDr === 0) && (currPiece[1] === 'r' || currPiece[1] === 'q')) {
+          return true;
+        }
+        if (normDf !== 0 && normDr !== 0 && (currPiece[1] === 'b' || currPiece[1] === 'q')) {
+          return true;
+        }
+        break;
+      } else {
+        break;
+      }
+    }
+    current.file += normDf;
+    current.rank += normDr;
+  }
+  return false;
+}
+
+// --- New Helper: filterPinnedMoves ---
+// If a piece is pinned, restrict its moves to only those along the ray from its king.
+function filterPinnedMoves(pieceSquare, moves, board, color) {
+  if (!isPinned(pieceSquare, board, color)) {
+    return moves;
+  }
+  // Find the king of this side.
+  let kingSquare;
+  for (const [sq, piece] of Object.entries(board)) {
+    if (piece === color + 'k') {
+      kingSquare = sq;
+      break;
+    }
+  }
+  const kingCoord = squareToCoord(kingSquare);
+  const pieceCoord = squareToCoord(pieceSquare);
+  const df = pieceCoord.file - kingCoord.file;
+  const dr = pieceCoord.rank - kingCoord.rank;
+  const adf = Math.abs(df), adr = Math.abs(dr);
+  let normDf = 0, normDr = 0;
+  if (df === 0 && dr !== 0) {
+    normDr = dr / adr;
+  } else if (dr === 0 && df !== 0) {
+    normDf = df / adf;
+  } else if (adf === adr) {
+    normDf = df / adf;
+    normDr = dr / adr;
+  }
+  return moves.filter(move => {
+    const moveCoord = squareToCoord(move);
+    const dmf = moveCoord.file - kingCoord.file;
+    const dmr = moveCoord.rank - kingCoord.rank;
+    if (normDf === 0) {
+      return dmf === 0;
+    }
+    if (normDr === 0) {
+      return dmr === 0;
+    }
+    return Math.abs(dmf / normDf - dmr / normDr) < 0.001;
+  });
+}
+
 // === Calculate All Controlled Squares on the Board ===
 function calculateControlledSquares(board) {
   let coverage = {
@@ -190,6 +293,8 @@ function calculateControlledSquares(board) {
 
   Object.entries(board).forEach(([square, piece]) => {
     let moves = getPossibleMoves(square, piece, board);
+    // If the piece is pinned, filter its moves.
+    moves = filterPinnedMoves(square, moves, board, piece[0]);
     if (piece[0] === 'w') {
       moves.forEach(move => coverage.white.add(move));
     } else {

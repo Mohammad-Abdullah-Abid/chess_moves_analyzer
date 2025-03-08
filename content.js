@@ -213,7 +213,7 @@ function highlightHints(coverage, playerColor = 'w') {
     if (!squareClass) return;
     const square = squareClass.split('-')[1];
     
-    // If it is a move hint element
+    // For move hints, adjust background color
     if (hint.getAttribute('data-test-element') === "hint") {
       hint.classList.remove('safe-hint', 'danger-hint');
       if (enemyCoverage.has(square)) {
@@ -222,7 +222,7 @@ function highlightHints(coverage, playerColor = 'w') {
         hint.classList.add('safe-hint');
       }
     } 
-    // If it is a capture hint element, adjust the border instead of background
+    // For capture hints, adjust border style
     else if (hint.getAttribute('data-test-element') === "capture-hint") {
       hint.classList.remove('safe-capture-hint', 'danger-capture-hint');
       if (enemyCoverage.has(square)) {
@@ -234,12 +234,40 @@ function highlightHints(coverage, playerColor = 'w') {
   });
 }
 
+// === Highlighting Pieces Under Attack ===
+// For each piece belonging to the player, if its square is controlled
+// by an enemy piece, add a class to highlight that square.
+function highlightAttackedPieces(coverage, playerColor = 'w') {
+  const enemyCoverage = playerColor === 'w' ? coverage.black : coverage.white;
+  const pieces = document.querySelectorAll('.piece');
+  pieces.forEach(piece => {
+    let pieceType = Array.from(piece.classList).find(cls => /^[wb][prnbqk]$/.test(cls));
+    if (!pieceType) return;
+    const color = pieceType.charAt(0);
+    if (color !== playerColor) return;
+    
+    // Determine the square the piece is on from its class (e.g., "square-82")
+    const squareClass = Array.from(piece.classList).find(cls => cls.startsWith('square-'));
+    if (!squareClass) return;
+    const square = squareClass.split('-')[1];
+    
+    // Remove any existing under-attack indicator
+    piece.classList.remove('under-attack');
+    // If the enemy controls this square, mark the piece as under attack
+    if (enemyCoverage.has(square)) {
+      piece.classList.add('under-attack');
+    }
+  });
+}
+
 // === Update Coverage on the Board ===
 function updateCoverage() {
   const board = getBoardState();
   const coverage = calculateControlledSquares(board);
-  // Assuming the player is white; change to 'b' if needed.
+  // Highlight move and capture hints based on enemy coverage
   highlightHints(coverage, 'w');
+  // Highlight player's pieces that are under attack
+  highlightAttackedPieces(coverage, 'w');
 }
 
 // === Monitor the Page for Changes (to update on each move) ===

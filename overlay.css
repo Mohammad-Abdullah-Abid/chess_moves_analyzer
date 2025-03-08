@@ -3,6 +3,7 @@
     --danger-hint-bg: rgba(255, 0, 0, 0.14);
     --safe-capture-border: rgba(0, 0, 0, .14);
     --danger-capture-border: rgba(255, 0, 0, 0.14);
+    --danger-attack-bg: rgba(255, 0, 0, 0.30);
 }
 
 /* For move hints (background color) */
@@ -20,3 +21,9 @@
 .danger-capture-hint {
     border: 5px solid var(--danger-capture-border) !important;
 }
+
+/* For the piece placed on square under attack */
+.under-attack {
+    background-color: var(--danger-attack-bg) !important;
+  }
+  

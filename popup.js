@@ -28,18 +28,18 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   
-    // When a feature toggle is enabled, automatically enable the extension.
-    hintsToggle.addEventListener('change', () => {
-      if (hintsToggle.checked) {
+    // When either feature toggle changes, update the master toggle.
+    function updateMasterToggle() {
+      // If both feature toggles are unchecked, uncheck the extension toggle.
+      if (!hintsToggle.checked && !attacksToggle.checked) {
+        extensionToggle.checked = false;
+      } else {
         extensionToggle.checked = true;
       }
-    });
+    }
   
-    attacksToggle.addEventListener('change', () => {
-      if (attacksToggle.checked) {
-        extensionToggle.checked = true;
-      }
-    });
+    hintsToggle.addEventListener('change', updateMasterToggle);
+    attacksToggle.addEventListener('change', updateMasterToggle);
   
     saveBtn.addEventListener('click', () => {
       chrome.storage.sync.set({

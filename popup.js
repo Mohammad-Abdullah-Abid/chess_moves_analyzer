@@ -30,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
   
     // When either feature toggle changes, update the master toggle.
     function updateMasterToggle() {
-      // If both feature toggles are unchecked, uncheck the extension toggle.
       if (!hintsToggle.checked && !attacksToggle.checked) {
         extensionToggle.checked = false;
       } else {
@@ -41,13 +40,34 @@ document.addEventListener('DOMContentLoaded', () => {
     hintsToggle.addEventListener('change', updateMasterToggle);
     attacksToggle.addEventListener('change', updateMasterToggle);
   
+    // Toast function to display a custom notification message
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      // Allow the toast to render before adding the "show" class
+      setTimeout(() => {
+        toast.classList.add('show');
+      }, 100);
+      
+      // Remove the toast after 2 seconds
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          document.body.removeChild(toast);
+        }, 300);
+      }, 2000);
+    }
+  
     saveBtn.addEventListener('click', () => {
       chrome.storage.sync.set({
         extensionEnabled: extensionToggle.checked,
         highlightHints: hintsToggle.checked,
         highlightAttacks: attacksToggle.checked
       }, () => {
-        alert('Settings saved.');
+        showToast('Settings saved');
       });
     });
   });

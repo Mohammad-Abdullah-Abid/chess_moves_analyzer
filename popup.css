@@ -1,37 +1,61 @@
+:root {
+  --background-color: #2e2e2e;
+  --text-color: #fff;
+  --button-background-color: #3a3a3a;
+  --button-hover-background-color: #4a4a4a;
+  --toast-background-color: #5d9948;
+}
 .popup-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #2e2e2e;
-    color: #fff;
-    width: 300px;
-    padding: 20px;
-  }
-  h1 {
-    font-size: 18px;
-    margin-bottom: 15px;
-  }
-  .toggle {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-  }
-  .toggle label {
-    flex: 1;
-    font-size: 14px;
-  }
-  .toggle input {
-    transform: scale(1.2);
-  }
-  #save-btn {
-    background-color: #3a3a3a;
-    border: none;
-    color: #fff;
-    padding: 10px;
-    width: 100%;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  #save-btn:hover {
-    background-color: #4a4a4a;
-  }
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  width: 300px;
+  padding: 20px;
+}
+h1 {
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+.toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+.toggle label {
+  flex: 1;
+  font-size: 14px;
+}
+.toggle input {
+  transform: scale(1.2);
+}
+#save-btn {
+  background-color: var(--button-background-color);
+  border: none;
+  color: var(--text-color);
+  padding: 10px;
+  width: 100%;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 30px;
+}
+#save-btn:hover {
+  background-color: var(--button-hover-background-color);
+}
+.toast {
+  position: fixed;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--toast-background-color);
+  color: var(--text-color);
+  padding: 10px 20px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+}
+.toast.show {
+  opacity: 1;
+}

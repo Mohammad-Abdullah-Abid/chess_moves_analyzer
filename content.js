@@ -251,28 +251,29 @@ function highlightHints(board, coverage, playerColor = 'w') {
     // For move hints, adjust background color
     if (hint.getAttribute('data-test-element') === "hint") {
       hint.classList.remove('safe-hint', 'danger-hint');
-      hint.classList.add(enemyCoverage.has(square) ? 'danger-hint' : 'safe-hint');
-    } else if (hint.getAttribute('data-test-element') === "capture-hint") {
-      hint.classList.remove('safe-capture-hint', 'danger-capture-hint');
-      // Determine danger based on current coverage.
       let isDanger = enemyCoverage.has(square);
       
       // Get threat details for this square.
       const threats = getThreatDetails(square, board, playerColor === 'w' ? 'b' : 'w');
+      // If the only threat comes from the enemy king and the square is defended, cancel danger.
+      if (threats.kingThreat && !threats.otherThreat && isDefended(square, board, playerColor)) {
+        isDanger = false;
+      }
+      hint.classList.add(isDanger ? 'danger-hint' : 'safe-hint');
+    } else if (hint.getAttribute('data-test-element') === "capture-hint") {
+      hint.classList.remove('safe-capture-hint', 'danger-capture-hint');
+      let isDanger = enemyCoverage.has(square);
       
-      // If the only threat comes from the enemy king...
-      if (threats.kingThreat && !threats.otherThreat) {
-        // ...and if the square is defended by a friendly piece (excluding the king),
-        // then cancel the danger.
-        if (isDefended(square, board, playerColor)) {
-          isDanger = false;
-        }
+      const threats = getThreatDetails(square, board, playerColor === 'w' ? 'b' : 'w');
+      if (threats.kingThreat && !threats.otherThreat && isDefended(square, board, playerColor)) {
+        isDanger = false;
       }
       
-      // Run simulation only if not already dangerous and the square is not defended.
+      // Simulation: if the square holds an enemy piece and is not defended,
+      // simulate its removal to see if additional enemy attacks are unmasked.
       if (!isDanger && board[square] && board[square][0] !== playerColor && !isDefended(square, board, playerColor)) {
         let simulatedBoard = Object.assign({}, board);
-        delete simulatedBoard[square]; // Simulate capturing the enemy piece.
+        delete simulatedBoard[square];
         let simulatedCoverage = calculateControlledSquares(simulatedBoard);
         let simulatedEnemyCoverage = playerColor === 'w' ? simulatedCoverage.black : simulatedCoverage.white;
         if (simulatedEnemyCoverage.has(square)) {
@@ -284,6 +285,7 @@ function highlightHints(board, coverage, playerColor = 'w') {
     }
   });
 }
+
 
 
 

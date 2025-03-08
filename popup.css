@@ -109,3 +109,33 @@ h1 {
 .toast.show {
   opacity: 1;
 }
+
+
+/* Custom checkbox styles */
+input[type="checkbox"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--text-color);
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+}
+
+input[type="checkbox"]:checked {
+  background-color: var(--toast-background-color);
+  border-color: var(--toast-background-color);
+}
+
+input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 0px;
+  left: 4px;
+  width: 6px;
+  height: 12px;
+  border: solid var(--text-color);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}

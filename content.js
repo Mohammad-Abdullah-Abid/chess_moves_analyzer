@@ -292,3 +292,9 @@ observer.observe(document.body, { childList: true, subtree: true });
 
 // Run the update initially
 updateCoverage();
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'sync' && (changes.extensionEnabled || changes.highlightHints || changes.highlightAttacks)) {
+    updateCoverage();
+  }
+});

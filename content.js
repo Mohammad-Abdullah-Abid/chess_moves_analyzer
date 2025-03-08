@@ -199,6 +199,40 @@ function calculateControlledSquares(board) {
   return coverage;
 }
 
+// --- New Helper: isDefended ---
+// Returns true if any piece (excluding the king) of the given color can move to the square.
+function isDefended(square, board, color) {
+  for (const [sq, piece] of Object.entries(board)) {
+    if (piece[0] === color && piece[1] !== 'k') {
+      const moves = getPossibleMoves(sq, piece, board);
+      if (moves.includes(square)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// --- New Helper: getThreatDetails ---
+// Returns an object indicating if the enemy king and/or other enemy pieces threaten the square.
+function getThreatDetails(square, board, enemyColor) {
+  let kingThreat = false;
+  let otherThreat = false;
+  for (const [sq, piece] of Object.entries(board)) {
+    if (piece[0] === enemyColor) {
+      const moves = getPossibleMoves(sq, piece, board);
+      if (moves.includes(square)) {
+        if (piece[1] === 'k') {
+          kingThreat = true;
+        } else {
+          otherThreat = true;
+        }
+      }
+    }
+  }
+  return { kingThreat, otherThreat };
+}
+
 // === Highlighting Hint Elements Based on Enemy Coverage ===
 // For move hints we adjust background color,
 // and for capture hints we adjust the border style.
@@ -222,26 +256,38 @@ function highlightHints(board, coverage, playerColor = 'w') {
       hint.classList.remove('safe-capture-hint', 'danger-capture-hint');
       // Determine danger based on current coverage.
       let isDanger = enemyCoverage.has(square);
-      // If not dangerous yet, and there is an enemy piece on the target square,
-      // simulate removal of that piece to check if new enemy attacks appear.
-      if (!isDanger && board[square] && board[square][0] !== playerColor) {
-        // Clone the board state.
+      
+      // Get threat details for this square.
+      const threats = getThreatDetails(square, board, playerColor === 'w' ? 'b' : 'w');
+      
+      // If the only threat comes from the enemy king...
+      if (threats.kingThreat && !threats.otherThreat) {
+        // ...and if the square is defended by a friendly piece (excluding the king),
+        // then cancel the danger.
+        if (isDefended(square, board, playerColor)) {
+          isDanger = false;
+        }
+      }
+      
+      // Run simulation only if not already dangerous and the square is not defended.
+      if (!isDanger && board[square] && board[square][0] !== playerColor && !isDefended(square, board, playerColor)) {
         let simulatedBoard = Object.assign({}, board);
-        delete simulatedBoard[square]; // Remove enemy piece.
+        delete simulatedBoard[square]; // Simulate capturing the enemy piece.
         let simulatedCoverage = calculateControlledSquares(simulatedBoard);
         let simulatedEnemyCoverage = playerColor === 'w' ? simulatedCoverage.black : simulatedCoverage.white;
         if (simulatedEnemyCoverage.has(square)) {
           isDanger = true;
         }
       }
+      
       hint.classList.add(isDanger ? 'danger-capture-hint' : 'safe-capture-hint');
     }
   });
 }
 
+
+
 // === Highlighting Pieces Under Attack ===
-// For each piece belonging to the player, if its square is controlled
-// by an enemy piece, add a class to highlight that square.
 function highlightAttackedPieces(coverage, playerColor = 'w') {
   const enemyCoverage = playerColor === 'w' ? coverage.black : coverage.white;
   const pieces = document.querySelectorAll('.piece');

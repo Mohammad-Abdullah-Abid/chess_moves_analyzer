@@ -2,25 +2,29 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Chess Board Coverage</title>
+    <title>Chess Board Analyzer</title>
     <link rel="stylesheet" href="popup.css">
   </head>
   <body class="popup-body">
-    <h1>Chess Board Coverage</h1>
-    <div class="toggle">
-      <label for="extension-toggle">Extension Enabled</label>
-      <input type="checkbox" id="extension-toggle">
+    <div class = "header">
+      <img id="icon-head" src="icons/icon.png" alt="icon" class="icon">
+      <h1>Chess Board Coverage</h1>
     </div>
-    <div class="toggle">
-      <label for="hints-toggle">Highlight Hints</label>
-      <input type="checkbox" id="hints-toggle">
+    <div class="setting-card">
+      <div class="toggle">
+        <label for="extension-toggle">Extension Enabled</label>
+        <input type="checkbox" id="extension-toggle">
+      </div>
+      <div class="toggle">
+        <label for="hints-toggle">Highlight Hints</label>
+        <input type="checkbox" id="hints-toggle">
+      </div>
+      <div class="toggle">
+        <label for="attacks-toggle">Highlight Under Attack Pieces</label>
+        <input type="checkbox" id="attacks-toggle">
+      </div>
+      <button id="save-btn">Save Settings</button>
     </div>
-    <div class="toggle">
-      <label for="attacks-toggle">Highlight Under Attack Pieces</label>
-      <input type="checkbox" id="attacks-toggle">
-    </div>
-    <button id="save-btn">Save Settings</button>
-    
     <script src="popup.js"></script>
   </body>
 </html>

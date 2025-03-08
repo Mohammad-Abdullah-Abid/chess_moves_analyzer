@@ -1,9 +1,10 @@
 :root {
-  --background-color: #2e2e2e;
-  --text-color: #fff;
-  --button-background-color: #3a3a3a;
-  --button-hover-background-color: #4a4a4a;
-  --toast-background-color: #5d9948;
+  --background-color: rgba(46, 46, 46, 1);
+  --text-color: rgba(255, 255, 255, 1);
+  --button-background-color: rgba(58, 58, 58, 1);
+  --button-background-semitransparent-color: rgba(58, 58, 58, 0.4);
+  --button-hover-background-color: rgba(74, 74, 74, 1);
+  --toast-background-color: rgba(93, 153, 72, 1);
 }
 .popup-body {
   margin: 0;
@@ -12,11 +13,60 @@
   color: var(--text-color);
   width: 300px;
   padding: 20px;
+  position: relative;
 }
+
+.popup-body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('assets/bg.jpg');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.3;
+  z-index: -1;
+}
+
+.header {
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 5px;
+  border-radius: 4px;
+  background-color: var(--background-color);
+}
+
+.header h1 {
+  color: var(--text-color);
+}
+
+.popup-body h1 {
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+#icon-head{
+  width: 30px;
+  height: 30px;
+  margin: 0 10px;
+  display: block;
+}
+
 h1 {
   font-size: 18px;
   margin-bottom: 15px;
 }
+
+.setting-card{
+  padding: 10px;
+  background-color: var(--button-background-semitransparent-color);
+  border-radius: 4px;
+}
+
 .toggle {
   display: flex;
   justify-content: space-between;
@@ -41,7 +91,7 @@ h1 {
   margin-top: 30px;
 }
 #save-btn:hover {
-  background-color: var(--button-hover-background-color);
+  background-color: var(--background-color);
 }
 .toast {
   position: fixed;

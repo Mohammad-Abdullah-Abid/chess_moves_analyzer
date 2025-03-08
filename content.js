@@ -199,13 +199,18 @@ function calculateControlledSquares(board) {
   return coverage;
 }
 
-// --- New Helper: isDefended ---
-// Returns true if any piece (excluding the king) of the given color can move to the square.
-function isDefended(square, board, color) {
+// --- Updated Helper: isDefended ---
+// Returns true if any piece (excluding the king) of the given color
+// can move to the target square if that square were empty.
+function isDefended(targetSquare, board, color) {
   for (const [sq, piece] of Object.entries(board)) {
-    if (piece[0] === color && piece[1] !== 'k') {
-      const moves = getPossibleMoves(sq, piece, board);
-      if (moves.includes(square)) {
+    // Skip if it's not a friendly piece or if it's the piece on the target.
+    if (piece[0] === color && sq !== targetSquare && piece[1] !== 'k') {
+      // Create a simulated board where the target square is empty.
+      let simBoard = Object.assign({}, board);
+      delete simBoard[targetSquare];
+      const moves = getPossibleMoves(sq, piece, simBoard);
+      if (moves.includes(targetSquare)) {
         return true;
       }
     }
@@ -234,10 +239,8 @@ function getThreatDetails(square, board, enemyColor) {
 }
 
 // === Highlighting Hint Elements Based on Enemy Coverage ===
-// For move hints we adjust background color,
-// and for capture hints we adjust the border style.
-// For capture hints, we now simulate removal of the enemy piece if present
-// to account for unmasking enemy attacks.
+// For move hints, we adjust the background color;
+// for capture hints, we adjust the border style and simulate removal of enemy piece.
 function highlightHints(board, coverage, playerColor = 'w') {
   const enemyCoverage = playerColor === 'w' ? coverage.black : coverage.white;
   // Select both move hints and capture hints
@@ -255,7 +258,7 @@ function highlightHints(board, coverage, playerColor = 'w') {
       
       // Get threat details for this square.
       const threats = getThreatDetails(square, board, playerColor === 'w' ? 'b' : 'w');
-      // If the only threat comes from the enemy king and the square is defended, cancel danger.
+      // If only threatened by enemy king and the square is defended, cancel danger.
       if (threats.kingThreat && !threats.otherThreat && isDefended(square, board, playerColor)) {
         isDanger = false;
       }
@@ -290,7 +293,7 @@ function highlightHints(board, coverage, playerColor = 'w') {
 
 
 // === Highlighting Pieces Under Attack ===
-function highlightAttackedPieces(coverage, playerColor = 'w') {
+function highlightAttackedPieces(board, coverage, playerColor = 'w') {
   const enemyCoverage = playerColor === 'w' ? coverage.black : coverage.white;
   const pieces = document.querySelectorAll('.piece');
   pieces.forEach(piece => {
@@ -298,17 +301,22 @@ function highlightAttackedPieces(coverage, playerColor = 'w') {
     if (!pieceType) return;
     const color = pieceType.charAt(0);
     if (color !== playerColor) return;
-
+    
     // Determine the square the piece is on from its class (e.g., "square-82")
     const squareClass = Array.from(piece.classList).find(cls => cls.startsWith('square-'));
     if (!squareClass) return;
     const square = squareClass.split('-')[1];
-
+    
     // Remove any existing under-attack indicator
     piece.classList.remove('under-attack');
     // If the enemy controls this square, mark the piece as under attack
     if (enemyCoverage.has(square)) {
-      piece.classList.add('under-attack');
+      const threats = getThreatDetails(square, board, playerColor === 'w' ? 'b' : 'w');
+      if (threats.kingThreat && !threats.otherThreat && isDefended(square, board, playerColor)) {
+        // Considered safe.
+      } else {
+        piece.classList.add('under-attack');
+      }
     }
   });
 }
@@ -340,7 +348,7 @@ function updateCoverage() {
       });
     }
     if (settings.highlightAttacks) {
-      highlightAttackedPieces(coverage, 'w');
+      highlightAttackedPieces(board, coverage, 'w');
     } else {
       document.querySelectorAll('.piece').forEach(piece => piece.classList.remove('under-attack'));
     }

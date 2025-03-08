@@ -21,8 +21,7 @@
     {
       "matches": ["*://www.chess.com/*"],
       "js": ["content.js"],
-      "css": ["overlay.css"],
-      "run_at": "document_idle"
+      "css": ["overlay.css"]
     }
   ]
 }

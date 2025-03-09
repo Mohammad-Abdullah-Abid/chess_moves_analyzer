@@ -315,7 +315,9 @@ function isDefended(targetSquare, board, color) {
       let simBoard = Object.assign({}, board);
       delete simBoard[targetSquare];
       const moves = getPossibleMoves(sq, piece, simBoard);
-      if (moves.includes(targetSquare)) {
+      // Filter moves based on pins
+      const filteredMoves = filterPinnedMoves(sq, moves, simBoard, color);
+      if (filteredMoves.includes(targetSquare)) {
         return true;
       }
     }
@@ -348,6 +350,7 @@ function getThreatDetails(square, board, enemyColor) {
 // for capture hints, we adjust the border style and simulate removal of enemy piece.
 function highlightHints(board, coverage, playerColor = 'w') {
   const enemyCoverage = playerColor === 'w' ? coverage.black : coverage.white;
+  const enemyColor = playerColor === 'w' ? 'b' : 'w';
   // Select both move hints and capture hints
   const hintElements = document.querySelectorAll('[data-test-element="hint"], [data-test-element="capture-hint"]');
   hintElements.forEach(hint => {
@@ -362,7 +365,7 @@ function highlightHints(board, coverage, playerColor = 'w') {
       let isDanger = enemyCoverage.has(square);
       
       // Get threat details for this square.
-      const threats = getThreatDetails(square, board, playerColor === 'w' ? 'b' : 'w');
+      const threats = getThreatDetails(square, board, enemyColor);
       // If only threatened by enemy king and the square is defended, cancel danger.
       if (threats.kingThreat && !threats.otherThreat && isDefended(square, board, playerColor)) {
         isDanger = false;
@@ -372,20 +375,23 @@ function highlightHints(board, coverage, playerColor = 'w') {
       hint.classList.remove('safe-capture-hint', 'danger-capture-hint');
       let isDanger = enemyCoverage.has(square);
       
-      const threats = getThreatDetails(square, board, playerColor === 'w' ? 'b' : 'w');
+      const threats = getThreatDetails(square, board, enemyColor);
       if (threats.kingThreat && !threats.otherThreat && isDefended(square, board, playerColor)) {
         isDanger = false;
       }
       
       // Simulation: if the square holds an enemy piece and is not defended,
       // simulate its removal to see if additional enemy attacks are unmasked.
-      if (!isDanger && board[square] && board[square][0] !== playerColor && !isDefended(square, board, playerColor)) {
-        let simulatedBoard = Object.assign({}, board);
-        delete simulatedBoard[square];
-        let simulatedCoverage = calculateControlledSquares(simulatedBoard);
-        let simulatedEnemyCoverage = playerColor === 'w' ? simulatedCoverage.black : simulatedCoverage.white;
-        if (simulatedEnemyCoverage.has(square)) {
-          isDanger = true;
+      if (!isDanger && board[square] && board[square][0] !== playerColor) {
+        // Check if the square is truly defended considering pins
+        if (!isDefended(square, board, playerColor)) {
+          let simulatedBoard = JSON.parse(JSON.stringify(board)); // Deep copy
+          delete simulatedBoard[square];
+          let simulatedCoverage = calculateControlledSquares(simulatedBoard);
+          let simulatedEnemyCoverage = playerColor === 'w' ? simulatedCoverage.black : simulatedCoverage.white;
+          if (simulatedEnemyCoverage.has(square)) {
+            isDanger = true;
+          }
         }
       }
       
